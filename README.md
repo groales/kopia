@@ -78,6 +78,8 @@ services:
       - ./logs:/app/logs
       - ${KOPIA_REPOSITORY_PATH}:/repository
       - ${KOPIA_DATA_PATH}:/data:ro
+      # Para browsing/mount de snapshots via FUSE
+      - ./tmp:/tmp:shared
     ports:
       - 51515:51515
     command:
@@ -137,11 +139,12 @@ docker-compose down
 
 ```text
 Bind mounts:
-├── ./config          -> /app/config
-├── ./cache           -> /app/cache
-├── ./logs            -> /app/logs
-├── KOPIA_REPOSITORY_PATH -> /repository       (disco/NAS externo)
-└── KOPIA_DATA_PATH       -> /data (solo lectura)
+├── ./config               -> /app/config
+├── ./cache                -> /app/cache
+├── ./logs                 -> /app/logs
+├── ./tmp                  -> /tmp (shared, para mount de snapshots via FUSE)
+├── KOPIA_REPOSITORY_PATH  -> /repository       (disco/NAS externo)
+└── KOPIA_DATA_PATH        -> /data (solo lectura)
 ```
 
 > **IMPORTANTE**: `KOPIA_REPOSITORY_PATH` debe apuntar a un almacenamiento fisicamente separado del host (NAS, disco externo, etc.). Guardar el repositorio en el mismo disco que los datos que se respaldan anula el proposito del backup.

@@ -14,6 +14,8 @@ services:
       - ./logs:/app/logs
       - ${KOPIA_REPOSITORY_PATH}:/repository
       - ${KOPIA_DATA_PATH}:/data:ro
+      # Para browsing/mount de snapshots via FUSE
+      - ./tmp:/tmp:shared
     # Puertos expuestos para acceso directo (opcional, se recomienda usar proxy inverso)
     ports:
       - 51515:51515
