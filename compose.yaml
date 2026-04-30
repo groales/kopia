@@ -1,0 +1,29 @@
+services:
+  kopia:
+    image: kopia/kopia:latest
+    container_name: kopia
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-Europe/Madrid}
+    volumes:
+      - ./config:/app/config
+      - ./cache:/app/cache
+      - ./logs:/app/logs
+      - ./repository:/repository
+      - /host/path/to/data:/data:ro
+    # Puertos expuestos para acceso directo (opcional, se recomienda usar proxy inverso)
+    ports:
+      - 51515:51515
+    command:
+      - server
+      - start
+      - --insecure
+      - --address=0.0.0.0:51515
+      - --server-username=${KOPIA_USER:-admin}
+      - --server-password=${KOPIA_SERVER_PASSWORD}
+
+# Anadir estas lineas para red externa de proxy inverso
+networks:
+  default:
+    external: true
+    name: proxy
