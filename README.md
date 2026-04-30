@@ -80,6 +80,10 @@ services:
       - ${KOPIA_DATA_PATH}:/data:ro
       # Para browsing/mount de snapshots via FUSE
       - ./tmp:/tmp:shared
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse
     ports:
       - 51515:51515
     command:

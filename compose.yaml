@@ -16,6 +16,10 @@ services:
       - ${KOPIA_DATA_PATH}:/data:ro
       # Para browsing/mount de snapshots via FUSE
       - ./tmp:/tmp:shared
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse
     # Puertos expuestos para acceso directo (opcional, se recomienda usar proxy inverso)
     ports:
       - 51515:51515
