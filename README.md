@@ -69,6 +69,8 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TZ:-Europe/Madrid}
+      - KOPIA_PASSWORD=${KOPIA_REPOSITORY_PASSWORD}
+      - USER=${KOPIA_USER:-admin}
     volumes:
       - ./config:/app/config
       - ./cache:/app/cache
