@@ -12,8 +12,8 @@ services:
       - ./config:/app/config
       - ./cache:/app/cache
       - ./logs:/app/logs
-      - ./repository:/repository
-      - /host/path/to/data:/data:ro
+      - ${KOPIA_REPOSITORY_PATH}:/repository
+      - ${KOPIA_DATA_PATH}:/data:ro
     # Puertos expuestos para acceso directo (opcional, se recomienda usar proxy inverso)
     ports:
       - 51515:51515

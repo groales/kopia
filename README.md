@@ -18,7 +18,8 @@ Referencia oficial de instalacion: https://kopia.io/docs/installation/
 - Docker Compose instalado.
 - Red Docker externa `proxy` creada (si vas a publicar mediante proxy inverso).
 - Passwords seguras para `KOPIA_SERVER_PASSWORD` y `KOPIA_REPOSITORY_PASSWORD`.
-- Permisos de escritura para UID/GID `1000:1000` en `./config`, `./cache`, `./logs` y `./repository`.
+- Ruta externa para `KOPIA_REPOSITORY_PATH`: disco secundario, NAS o almacenamiento de red — **nunca en el mismo disco que los datos a respaldar**.
+- Permisos de escritura para UID/GID `1000:1000` en `./config`, `./cache`, `./logs` y en la ruta de `KOPIA_REPOSITORY_PATH`.
 
 ## Archivos de este Repositorio
 
@@ -75,8 +76,8 @@ services:
       - ./config:/app/config
       - ./cache:/app/cache
       - ./logs:/app/logs
-      - ./repository:/repository
-      - /host/path/to/data:/data:ro
+      - ${KOPIA_REPOSITORY_PATH}:/repository
+      - ${KOPIA_DATA_PATH}:/data:ro
     ports:
       - 51515:51515
     command:
@@ -136,12 +137,14 @@ docker-compose down
 
 ```text
 Bind mounts:
-├── ./config -> /app/config
-├── ./cache -> /app/cache
-├── ./logs -> /app/logs
-├── ./repository -> /repository
-└── /host/path/to/data -> /data (solo lectura)
+├── ./config          -> /app/config
+├── ./cache           -> /app/cache
+├── ./logs            -> /app/logs
+├── KOPIA_REPOSITORY_PATH -> /repository       (disco/NAS externo)
+└── KOPIA_DATA_PATH       -> /data (solo lectura)
 ```
+
+> **IMPORTANTE**: `KOPIA_REPOSITORY_PATH` debe apuntar a un almacenamiento fisicamente separado del host (NAS, disco externo, etc.). Guardar el repositorio en el mismo disco que los datos que se respaldan anula el proposito del backup.
 
 ## Configuracion Avanzada
 
@@ -168,8 +171,8 @@ Bind mounts:
 
 ## Backup y Restauracion
 
-- Backup: respalda `./repository` y `./config` periodicamente.
-- Restauracion: vuelve a montar esos directorios y conecta el repositorio.
+- Backup: el repositorio ya reside en almacenamiento externo (`KOPIA_REPOSITORY_PATH`). Respalda adicionalmente `./config`.
+- Restauracion: ajusta `KOPIA_REPOSITORY_PATH` en `.env` y levanta el servicio. Kopia conectara el repositorio automaticamente si `KOPIA_PASSWORD` es correcta.
 
 ## Actualizacion
 
