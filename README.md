@@ -18,6 +18,7 @@ Referencia oficial de instalacion: https://kopia.io/docs/installation/
 - Docker Compose instalado.
 - Red Docker externa `proxy` creada (si vas a publicar mediante proxy inverso).
 - Passwords seguras para `KOPIA_SERVER_PASSWORD` y `KOPIA_REPOSITORY_PASSWORD`.
+- Permisos de escritura para UID/GID `1000:1000` en `./config`, `./cache`, `./logs` y `./repository`.
 
 ## Archivos de este Repositorio
 
@@ -64,6 +65,7 @@ services:
   kopia:
     image: kopia/kopia:latest
     container_name: kopia
+    user: "1000:1000"
     restart: unless-stopped
     environment:
       - TZ=${TZ:-Europe/Madrid}
@@ -160,6 +162,7 @@ Bind mounts:
 - Publica por HTTPS si hay acceso externo.
 - Mantiene `/data` en modo solo lectura para minimizar riesgo.
 - Protege backups con cifrado y control de acceso.
+- Ejecuta el contenedor con usuario no-root (`1000:1000`) para reducir riesgos y problemas de permisos.
 
 ## Backup y Restauracion
 
