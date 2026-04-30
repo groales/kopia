@@ -17,9 +17,9 @@ Referencia oficial de instalacion: https://kopia.io/docs/installation/
 - Docker Engine instalado.
 - Docker Compose instalado.
 - Red Docker externa `proxy` creada (si vas a publicar mediante proxy inverso).
-- Definir valores seguros para `USERNAME`, `SECRET_PASSWORD` y `SECRET` en `compose.yaml`.
-- Definir rutas reales para `/path/to/data/dir` y `/path/to/repository/dir` en `compose.yaml`.
-- Permisos de escritura sobre las rutas de `./cache`, `./logs` y `/path/to/repository/dir`.
+- Definir valores seguros en `.env` para `USERNAME`, `SECRET_PASSWORD` y `SECRET`.
+- Definir rutas reales en `.env` para `KOPIA_DATA_DIR` y `KOPIA_REPOSITORY_DIR`.
+- Permisos de escritura sobre `./config`, `./cache`, `./logs` y `KOPIA_REPOSITORY_DIR`.
 
 ## Archivos de este Repositorio
 
@@ -38,9 +38,9 @@ Antes del despliegue, genera passwords seguras:
 openssl rand -base64 32
 ```
 
-Usa valores distintos para `KOPIA_SERVER_PASSWORD` y `KOPIA_REPOSITORY_PASSWORD`.
+Usa valores distintos para `SECRET_PASSWORD` y `SECRET`.
 
-En el compose actual esos valores corresponden a:
+En el despliegue:
 - `SECRET_PASSWORD`: password de acceso al servidor web/API.
 - `SECRET`: password del repositorio de backups.
 
@@ -63,7 +63,7 @@ cp .env.example .env
 
 Edita `.env` y ajusta passwords y rutas.
 
-Nota: el `compose.yaml` actual usa valores directos en el propio archivo. El `.env.example` se mantiene como plantilla de referencia para que puedas copiar/pegar valores en `compose.yaml`.
+El `compose.yaml` usa estas variables automaticamente desde `.env`.
 
 ### 3. Revisar `compose.yaml`
 
@@ -71,8 +71,8 @@ Nota: el `compose.yaml` actual usa valores directos en el propio archivo. El `.e
 services:
   kopia:
     image: kopia/kopia:latest
-    hostname: Hostname
-    container_name: Kopia
+    hostname: ${HOSTNAME:-Hostname}
+    container_name: ${CONTAINER_NAME:-Kopia}
     restart: unless-stopped
     ports:
       - 51515:51515
@@ -83,21 +83,21 @@ services:
       - --disable-csrf-token-checks
       - --insecure
       - --address=0.0.0.0:51515
-      - --server-username=USERNAME
-      - --server-password=SECRET_PASSWORD
+      - --server-username=${USERNAME}
+      - --server-password=${SECRET_PASSWORD}
     environment:
       # Set repository password
-      KOPIA_PASSWORD: "SECRET"
-      USER: "User"
+      KOPIA_PASSWORD: ${SECRET}
+      USER: ${USERNAME}
     volumes:
       # Mount local folders needed by kopia
-      - .config:/app/config
+      - ./config:/app/config
       - ./cache:/app/cache
       - ./logs:/app/logs
       # Mount local folders to snapshot
-      - /path/to/data/dir:/data:ro
+      - ${KOPIA_DATA_DIR}:/data:ro
       # Mount repository location
-      - /path/to/repository/dir:/repository
+      - ${KOPIA_REPOSITORY_DIR}:/repository
 
 networks:
   default:
@@ -115,7 +115,7 @@ docker-compose up -d
 ### 5. Crear repositorio de backup (primer arranque)
 
 ```bash
-docker-compose exec kopia sh -lc "kopia repository create filesystem --path=/repository --password=$KOPIA_REPOSITORY_PASSWORD"
+docker-compose exec kopia sh -lc "kopia repository create filesystem --path=/repository --password=$SECRET"
 ```
 
 ---
@@ -129,8 +129,8 @@ Puedes copiar `compose.yaml` y `.env.example` a una carpeta nueva y ejecutar los
 ## Acceso Inicial
 
 - UI/API de Kopia: `http://IP_DEL_SERVIDOR:51515`
-- Usuario: valor de `USERNAME`
-- Password: valor de `SECRET_PASSWORD`
+- Usuario: valor de `USERNAME` en `.env`
+- Password: valor de `SECRET_PASSWORD` en `.env`
 
 Nota: el ejemplo usa `--insecure` para simplicidad. En produccion, publica Kopia detras de HTTPS con proxy inverso.
 
@@ -148,14 +148,14 @@ docker-compose down
 
 ```text
 Bind mounts:
-├── .config                -> /app/config
+├── ./config               -> /app/config
 ├── ./cache                -> /app/cache
 ├── ./logs                 -> /app/logs
-├── /path/to/data/dir      -> /data (solo lectura)
-└── /path/to/repository/dir -> /repository
+├── KOPIA_DATA_DIR         -> /data (solo lectura)
+└── KOPIA_REPOSITORY_DIR   -> /repository
 ```
 
-> **IMPORTANTE**: usa una ruta de repositorio en almacenamiento separado (NAS/disco externo) para no perder backups junto con el host principal.
+> **IMPORTANTE**: `KOPIA_REPOSITORY_DIR` debe apuntar a almacenamiento separado (NAS/disco externo) para no perder backups junto con el host principal.
 
 ## Configuracion Avanzada
 
@@ -168,9 +168,9 @@ Bind mounts:
 - Si no inicia:
   - `docker-compose logs --tail 200 kopia`
 - Si falla login:
-  - verifica `USERNAME` y `SECRET_PASSWORD` en `compose.yaml`.
+  - verifica `USERNAME` y `SECRET_PASSWORD` en `.env`.
 - Si falla la creacion del repositorio:
-  - valida permisos en `/path/to/repository/dir`.
+  - valida permisos en `KOPIA_REPOSITORY_DIR`.
 
 ## Seguridad
 
@@ -181,7 +181,7 @@ Bind mounts:
 
 ## Backup y Restauracion
 
-- Backup: respalda periodicamente `/path/to/repository/dir` y la configuracion (`.config`, `./cache`, `./logs`).
+- Backup: respalda periodicamente `KOPIA_REPOSITORY_DIR` y la configuracion (`./config`, `./cache`, `./logs`).
 - Restauracion: vuelve a montar esas rutas y levanta el servicio.
 
 ## Actualizacion

@@ -1,37 +1,33 @@
 services:
-  kopia:
-    image: kopia/kopia:latest
-    container_name: kopia
-    restart: unless-stopped
-    environment:
-      - TZ=${TZ:-Europe/Madrid}
-      - KOPIA_PASSWORD=${KOPIA_REPOSITORY_PASSWORD}
-      - USER=${KOPIA_USER:-admin}
-    volumes:
-      - ./config:/app/config
-      - ./cache:/app/cache
-      - ./logs:/app/logs
-      - ${KOPIA_REPOSITORY_PATH}:/repository
-      - ${KOPIA_DATA_PATH}:/data:ro
-      # Para browsing/mount de snapshots via FUSE
-      - ./tmp:/tmp:shared
-    cap_add:
-      - SYS_ADMIN
-    devices:
-      - /dev/fuse
-    security_opt:
-      - apparmor:unconfined
-      - seccomp:unconfined
-    # Puertos expuestos para acceso directo (opcional, se recomienda usar proxy inverso)
-    ports:
-      - 51515:51515
-    command:
-      - server
-      - start
-      - --insecure
-      - --address=0.0.0.0:51515
-      - --server-username=${KOPIA_USER:-admin}
-      - --server-password=${KOPIA_SERVER_PASSWORD}
+    kopia:
+        image: kopia/kopia:latest
+        hostname: ${HOSTNAME:-Hostname}
+        container_name: ${CONTAINER_NAME:-Kopia}
+        restart: unless-stopped
+        ports:
+            - 51515:51515
+        # Setup the server that provides the web gui
+        command:
+            - server
+            - start
+            - --disable-csrf-token-checks
+            - --insecure
+            - --address=0.0.0.0:51515
+            - --server-username=${USERNAME}
+            - --server-password=${SECRET_PASSWORD}
+        environment:
+            # Set repository password
+            KOPIA_PASSWORD: ${SECRET}
+            USER: ${USERNAME}
+        volumes:
+            # Mount local folders needed by kopia
+            - ./config:/app/config
+            - ./cache:/app/cache
+            - ./logs:/app/logs
+            # Mount local folders to snapshot
+            - ${KOPIA_DATA_DIR}:/data:ro
+            # Mount repository location
+            - ${KOPIA_REPOSITORY_DIR}:/repository
 
 # Anadir estas lineas para red externa de proxy inverso
 networks:
