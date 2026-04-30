@@ -83,6 +83,9 @@ services:
       - SYS_ADMIN
     devices:
       - /dev/fuse
+    security_opt:
+      - apparmor:unconfined
+      - seccomp:unconfined
     ports:
       - 51515:51515
     command:
@@ -165,7 +168,10 @@ Bind mounts:
 - Si falla login:
   - verifica `KOPIA_USER` y `KOPIA_SERVER_PASSWORD` en `.env`.
 - Si falla la creacion del repositorio:
-  - valida permisos en `./repository`.
+  - valida permisos en `KOPIA_REPOSITORY_PATH`.
+- Si `kopia snapshot mount` devuelve `/usr/bin/fusermount3: mount failed: Permission denied`:
+  - confirma que el servicio mantiene `/dev/fuse`, `cap_add: SYS_ADMIN` y `security_opt` con `apparmor:unconfined` y `seccomp:unconfined`.
+  - verifica en el host que existe `/dev/fuse` y que el modulo FUSE esta cargado.
 
 ## Seguridad
 

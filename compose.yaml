@@ -19,6 +19,9 @@ services:
       - SYS_ADMIN
     devices:
       - /dev/fuse
+    security_opt:
+      - apparmor:unconfined
+      - seccomp:unconfined
     # Puertos expuestos para acceso directo (opcional, se recomienda usar proxy inverso)
     ports:
       - 51515:51515
