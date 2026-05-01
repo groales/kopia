@@ -17,7 +17,7 @@ services:
             - --server-password=${SECRET_PASSWORD}
         environment:
             # Set repository password
-            KOPIA_PASSWORD: ${SECRET}
+            KOPIA_PASSWORD: ${KOPIA_PASSWORD}
             USER: ${USERNAME:-admin}
         volumes:
             # Mount local folders needed by kopia

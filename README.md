@@ -17,7 +17,7 @@ Referencia oficial de instalacion: https://kopia.io/docs/installation/
 - Docker Engine instalado.
 - Docker Compose instalado.
 - Red Docker externa `proxy` creada (si vas a publicar mediante proxy inverso).
-- Definir valores seguros en `.env` para `USERNAME`, `SECRET_PASSWORD` y `SECRET`.
+- Definir valores seguros en `.env` para `USERNAME`, `SECRET_PASSWORD` y `KOPIA_PASSWORD`.
 - Definir rutas reales en `.env` para `KOPIA_DATA_DIR` y `KOPIA_REPOSITORY_DIR`.
 - Permisos de escritura sobre `./config`, `./cache`, `./logs` y `KOPIA_REPOSITORY_DIR`.
 
@@ -38,11 +38,11 @@ Antes del despliegue, genera passwords seguras:
 openssl rand -base64 32
 ```
 
-Usa valores distintos para `SECRET_PASSWORD` y `SECRET`.
+Usa valores distintos para `SECRET_PASSWORD` y `KOPIA_PASSWORD`.
 
 En el despliegue:
 - `SECRET_PASSWORD`: password de acceso al servidor web/API.
-- `SECRET`: password del repositorio de backups.
+- `KOPIA_PASSWORD`: password del repositorio de backups.
 
 ---
 
@@ -87,7 +87,7 @@ services:
       - --server-password=${SECRET_PASSWORD}
     environment:
       # Set repository password
-      KOPIA_PASSWORD: ${SECRET}
+      KOPIA_PASSWORD: ${KOPIA_PASSWORD}
       USER: ${USERNAME:-admin}
     volumes:
       # Mount local folders needed by kopia
@@ -115,7 +115,7 @@ docker-compose up -d
 ### 5. Crear repositorio de backup (primer arranque)
 
 ```bash
-docker-compose exec kopia sh -lc "kopia repository create filesystem --path=/repository --password=$SECRET"
+docker-compose exec kopia sh -lc "kopia repository create filesystem --path=/repository --password=$KOPIA_PASSWORD"
 ```
 
 ---
