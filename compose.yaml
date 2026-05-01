@@ -13,12 +13,12 @@ services:
             - --disable-csrf-token-checks
             - --insecure
             - --address=0.0.0.0:51515
-            - --server-username=${USERNAME}
+            - --server-username=${USERNAME:-admin}
             - --server-password=${SECRET_PASSWORD}
         environment:
             # Set repository password
             KOPIA_PASSWORD: ${SECRET}
-            USER: ${USERNAME}
+            USER: ${USERNAME:-admin}
         volumes:
             # Mount local folders needed by kopia
             - ./config:/app/config
