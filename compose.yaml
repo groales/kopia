@@ -3,6 +3,7 @@ services:
         image: kopia/kopia:latest
         hostname: ${HOSTNAME:-kopia}
         container_name: ${CONTAINER_NAME:-kopia}
+        user: "1000:1000"
         restart: unless-stopped
         ports:
             - 51515:51515
@@ -16,14 +17,23 @@ services:
             - --server-username=${USERNAME:-admin}
             - --server-password=${SECRET_PASSWORD}
         environment:
-            # Set repository password
-            KOPIA_PASSWORD: ${KOPIA_PASSWORD}
-            USER: ${USERNAME:-admin}
+          - TZ=${TZ:-Europe/Madrid}
+          # Set repository password
+          - KOPIA_PASSWORD=${KOPIA_PASSWORD}
+          - USER=${USERNAME:-admin}
+          # R2 Cloudflare repository (optional)
+          - KOPIA_R2_BUCKET=${KOPIA_R2_BUCKET}
+          - KOPIA_R2_ENDPOINT=${KOPIA_R2_ENDPOINT}
+          - KOPIA_R2_ACCESS_KEY=${KOPIA_R2_ACCESS_KEY}
+          - KOPIA_R2_SECRET_KEY=${KOPIA_R2_SECRET_KEY}
+          - KOPIA_R2_PREFIX=${KOPIA_R2_PREFIX}
         volumes:
             # Mount local folders needed by kopia
             - ./config:/app/config
             - ./cache:/app/cache
             - ./logs:/app/logs
+            - ./restore:/restore
+            - ./tmp:/tmp:shared
             # Mount local folders to snapshot
             - ${KOPIA_DATA_DIR}:/data:ro
             # Mount repository location

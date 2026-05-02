@@ -19,7 +19,8 @@ Referencia oficial de instalacion: https://kopia.io/docs/installation/
 - Red Docker externa `proxy` creada (si vas a publicar mediante proxy inverso).
 - Definir valores seguros en `.env` para `USERNAME`, `SECRET_PASSWORD` y `KOPIA_PASSWORD`.
 - Definir rutas reales en `.env` para `KOPIA_DATA_DIR` y `KOPIA_REPOSITORY_DIR`.
-- Permisos de escritura sobre `./config`, `./cache`, `./logs` y `KOPIA_REPOSITORY_DIR`.
+- Permisos de escritura sobre `./config`, `./cache`, `./logs`, `./restore`, `./tmp` y `KOPIA_REPOSITORY_DIR`.
+- (Opcional) Credenciales R2 de Cloudflare si se usa almacenamiento remoto.
 
 ## Archivos de este Repositorio
 
@@ -73,6 +74,7 @@ services:
     image: kopia/kopia:latest
     hostname: ${HOSTNAME:-kopia}
     container_name: ${CONTAINER_NAME:-kopia}
+    user: "1000:1000"
     restart: unless-stopped
     ports:
       - 51515:51515
@@ -86,14 +88,23 @@ services:
       - --server-username=${USERNAME:-admin}
       - --server-password=${SECRET_PASSWORD}
     environment:
+      - TZ=${TZ:-Europe/Madrid}
       # Set repository password
-      KOPIA_PASSWORD: ${KOPIA_PASSWORD}
-      USER: ${USERNAME:-admin}
+      - KOPIA_PASSWORD=${KOPIA_PASSWORD}
+      - USER=${USERNAME:-admin}
+      # R2 Cloudflare repository (optional)
+      - KOPIA_R2_BUCKET=${KOPIA_R2_BUCKET}
+      - KOPIA_R2_ENDPOINT=${KOPIA_R2_ENDPOINT}
+      - KOPIA_R2_ACCESS_KEY=${KOPIA_R2_ACCESS_KEY}
+      - KOPIA_R2_SECRET_KEY=${KOPIA_R2_SECRET_KEY}
+      - KOPIA_R2_PREFIX=${KOPIA_R2_PREFIX}
     volumes:
       # Mount local folders needed by kopia
       - ./config:/app/config
       - ./cache:/app/cache
       - ./logs:/app/logs
+      - ./restore:/restore
+      - ./tmp:/tmp:shared
       # Mount local folders to snapshot
       - ${KOPIA_DATA_DIR}:/data:ro
       # Mount repository location
@@ -151,6 +162,8 @@ Bind mounts:
 ├── ./config               -> /app/config
 ├── ./cache                -> /app/cache
 ├── ./logs                 -> /app/logs
+├── ./restore              -> /restore
+├── ./tmp                  -> /tmp (compartido)
 ├── KOPIA_DATA_DIR         -> /data (solo lectura)
 └── KOPIA_REPOSITORY_DIR   -> /repository
 ```
@@ -160,6 +173,7 @@ Bind mounts:
 ## Configuracion Avanzada
 
 - Para backend remoto (S3, B2, etc.), crea/conecta repositorio con los comandos oficiales de Kopia.
+- Para usar Cloudflare R2 como repositorio, rellena las variables `KOPIA_R2_*` en `.env` y conéctalo con los comandos de Kopia.
 - Ajusta politicas de snapshots y retencion por host/path.
 - Si usas proxy inverso, puedes retirar el puerto directo `51515`.
 
